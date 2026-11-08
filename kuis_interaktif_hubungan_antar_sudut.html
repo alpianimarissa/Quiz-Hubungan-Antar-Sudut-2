@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Hubungan Antar Sudut - Kelas 7 SMP</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for Mathematics Formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .katex { font-size: 1.05em; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-blue-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/30 border border-indigo-400/40 flex items-center justify-center font-bold text-xl shadow-inner">
+                    📐
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold leading-tight">Kuis Matematika Interaktif</h1>
+                    <p class="text-xs text-indigo-200">Materi: Hubungan Antar Sudut (Kelas 7 SMP)</p>
+                </div>
+            </div>
+
+            <!-- Top Action Badge -->
+            <div class="flex items-center space-x-2">
+                <div id="save-indicator" class="hidden sm:flex items-center space-x-1 text-xs bg-emerald-500/20 text-emerald-200 px-3 py-1 rounded-full border border-emerald-400/30">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Jawaban Tersimpan</span>
+                </div>
+                <button onclick="confirmResetQuiz()" class="text-xs bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 px-3 py-1.5 rounded-lg border border-rose-400/30 transition flex items-center gap-1">
+                    🔄 Reset Kuis
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINERS -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT COLUMN: QUESTION PANEL (LG: 8 COLS) -->
+        <section class="lg:col-span-8 flex flex-col space-y-4">
+
+            <!-- STATS AND PROGRESS BAR CARD -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4 w-full sm:w-auto">
+                    <div class="flex flex-col">
+                        <span class="text-xs text-slate-500 font-medium">Nomor Soal</span>
+                        <span class="text-xl font-extrabold text-indigo-700" id="current-q-num">1 / 30</span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-slate-500 font-medium">Skor Saat Ini</span>
+                        <span class="text-xl font-extrabold text-emerald-600" id="live-score">0</span>
+                    </div>
+                </div>
+
+                <div class="w-full sm:w-64 space-y-1">
+                    <div class="flex justify-between text-xs font-semibold text-slate-600">
+                        <span>Progres Pengerjaan</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                        <div id="progress-bar-inner" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUESTION CARD -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 space-y-6 flex-grow flex flex-col justify-between">
+                <div>
+                    <!-- Badge & Flag Button -->
+                    <div class="flex items-center justify-between mb-4">
+                        <span id="question-category" class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">
+                            Kategori Soal
+                        </span>
+                        <button id="flag-btn" onclick="toggleFlagCurrentQuestion()" class="text-xs font-semibold px-3 py-1 rounded-full border transition flex items-center gap-1 border-slate-200 bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700">
+                            🚩 Ragu-ragu
+                        </button>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div id="question-text" class="text-slate-800 text-sm sm:text-base font-semibold leading-relaxed mb-4">
+                        <!-- Filled by JS -->
+                    </div>
+
+                    <!-- Visual Illustration (SVG Container) -->
+                    <div id="illustration-container" class="hidden my-4 p-4 bg-slate-900 rounded-2xl text-center border border-slate-800 flex justify-center items-center">
+                        <!-- Dynamic SVG SVG Inserted Here -->
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div id="options-container" class="space-y-3 pt-2">
+                        <!-- Options generated by JS -->
+                    </div>
+
+                    <!-- Instant Feedback Box -->
+                    <div id="feedback-box" class="hidden mt-5 p-4 rounded-xl border text-xs sm:text-sm space-y-2">
+                        <div id="feedback-title" class="font-extrabold flex items-center gap-2"></div>
+                        <div id="feedback-text" class="text-slate-700 leading-relaxed"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls Footer -->
+                <div class="flex items-center justify-between border-t border-slate-100 pt-5 mt-6">
+                    <button id="prev-btn" onclick="navigateQuestion(-1)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        ⬅️ Sebelumnya
+                    </button>
+                    <button id="next-btn" onclick="navigateQuestion(1)" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 shadow-sm">
+                        Selanjutnya ➡️
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: NAVIGATION GRID & SUMMARY (LG: 4 COLS) -->
+        <section class="lg:col-span-4 space-y-4">
+            
+            <!-- NAVIGATOR CARD -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <span>🗺️ Navigasi Soal</span>
+                    </h2>
+                    <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">30 Soal</span>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold text-center">
+                    <button onclick="setGridFilter('all')" id="filter-all" class="py-1 rounded-lg bg-white shadow-sm text-indigo-700">Semua</button>
+                    <button onclick="setGridFilter('correct')" id="filter-correct" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Benar</button>
+                    <button onclick="setGridFilter('wrong')" id="filter-wrong" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Salah</button>
+                    <button onclick="setGridFilter('flagged')" id="filter-flagged" class="py-1 rounded-lg text-slate-600 hover:text-slate-900">Ragu</button>
+                </div>
+
+                <!-- Grid Buttons (1-30) -->
+                <div id="grid-container" class="grid grid-cols-5 gap-2 max-h-[320px] overflow-y-auto custom-scrollbar p-1">
+                    <!-- Grid Buttons Generated by JS -->
+                </div>
+
+                <!-- Legend Indicator -->
+                <div class="border-t border-slate-100 pt-3 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500"></span><span>Benar</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-rose-500"></span><span>Salah</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400"></span><span>Ragu-ragu</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-200"></span><span>Belum Diisi</span></div>
+                </div>
+            </div>
+
+            <!-- SUMMARY STATS CARD -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-5 shadow-sm space-y-4">
+                <h3 class="font-bold text-sm text-indigo-200 border-b border-indigo-800/60 pb-2">📊 Rangkuman Kinerja</h3>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                        <span class="block text-xs text-indigo-300 font-medium">Terjawab</span>
+                        <span id="summary-answered" class="text-xl font-bold text-white">0 / 30</span>
+                    </div>
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                        <span class="block text-xs text-indigo-300 font-medium">Akurasi</span>
+                        <span id="summary-accuracy" class="text-xl font-bold text-emerald-400">0%</span>
+                    </div>
+                </div>
+                <button onclick="openResultModal()" class="w-full py-2.5 bg-indigo-500 hover:bg-indigo-600 font-bold text-xs rounded-xl transition shadow-md">
+                    🏁 Selesaikan & Lihat Nilai Akhir
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- RESULT MODAL -->
+    <div id="result-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center space-y-5 shadow-2xl border border-slate-100">
+            <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl mx-auto font-bold shadow-inner">
+                🏆
+            </div>
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">Hasil Kuis Selesai!</h3>
+                <p class="text-xs text-slate-500 mt-1">Berikut adalah rekapitulasi nilai matematika kamu</p>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div class="text-3xl font-black text-indigo-600" id="final-score-val">0</div>
+                <div class="grid grid-cols-3 gap-2 text-xs border-t border-slate-200 pt-3">
+                    <div>
+                        <span class="text-slate-400 block">Benar</span>
+                        <span id="modal-correct" class="font-bold text-emerald-600 text-sm">0</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Salah</span>
+                        <span id="modal-wrong" class="font-bold text-rose-600 text-sm">0</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Kosong</span>
+                        <span id="modal-empty" class="font-bold text-slate-600 text-sm">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <p id="modal-eval-text" class="text-xs text-slate-600 italic px-2">
+                "Kerja bagus! Terus tingkatkan pemahaman matematika kamu!"
+            </p>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeResultModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Tinjau Soal
+                </button>
+                <button onclick="resetQuizData()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-sm">
+                    Ulangi Kuis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* -------------------------------------------------------------------------- */
+        /* 1. DATA SOAL (30 SOAL BERAGAM + TERDISTRIBUSI OPSI A, B, C, D DENGAN SEIMBANG & ACAK) */
+        /* -------------------------------------------------------------------------- */
+        const questionsData = [
+            {
+                id: 1,
+                category: "Sudut Berpenyiku",
+                question: "Dua sudut $\\angle A$ dan $\\angle B$ saling berpenyiku (komplementer). Jika besar $\\angle A = 38^\\circ$, berapakah besar $\\angle B$?",
+                options: ["$142^\\circ$", "$62^\\circ$", "$52^\\circ$", "$42^\\circ$"],
+                answer: 2, // C
+                explanation: "Sudut berpenyiku berjumlah $90^\\circ$. Maka $\\angle B = 90^\\circ - 38^\\circ = 52^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "complementary",
+                val1: "38°", val2: "?"
+            },
+            {
+                id: 2,
+                category: "Sudut Berpelurus",
+                question: "Sudut $\\angle P$ dan $\\angle Q$ membentuk sudut lurus. Jika $\\angle P = 115^\\circ$, berapakah besar $\\angle Q$?",
+                options: ["$75^\\circ$", "$55^\\circ$", "$85^\\circ$", "$65^\\circ$"],
+                answer: 3, // D
+                explanation: "Sudut berpelurus berjumlah $180^\\circ$. Maka $\\angle Q = 180^\\circ - 115^\\circ = 65^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "supplementary",
+                val1: "115°", val2: "?"
+            },
+            {
+                id: 3,
+                category: "Bertolak Belakang",
+                question: "Dua garis saling berpotongan membentuk pasangan sudut bertolak belakang $\\angle K$ dan $\\angle L$. Jika $\\angle K = (3x + 10)^\\circ$ dan $\\angle L = 70^\\circ$, tentukan nilai $x$!",
+                options: ["$20$", "$25$", "$15$", "$30$"],
+                answer: 0, // A
+                explanation: "Sudut bertolak belakang nilainya **sama besar**: $3x + 10 = 70 \\implies 3x = 60 \\implies x = 20$.",
+                hasIllustration: false
+            },
+            {
+                id: 4,
+                category: "Sudut Sehadap",
+                question: "Dua garis sejajar dipotong oleh sebuah garis transversal. Pasangan sudut sehadap yang terbentuk memiliki sifat...",
+                options: ["Berjumlah $180^\\circ$", "Sama besar", "Berjumlah $90^\\circ$", "Saling tegak lurus"],
+                answer: 1, // B
+                explanation: "Sudut-sudut sehadap pada dua garis sejajar yang dipotong garis transversal selalu **sama besar**.",
+                hasIllustration: false
+            },
+            {
+                id: 5,
+                category: "Sudut Dalam Berseberangan",
+                question: "Perhatikan garis sejajar $g \\parallel h$ dipotong transversal. Jika sudut dalam berseberangan besarnya $(4x - 10)^\\circ$ dan $(2x + 30)^\\circ$, berapakah nilai $x$?",
+                options: ["$15$", "$25$", "$20$", "$10$"],
+                answer: 2, // C
+                explanation: "Sudut dalam berseberangan nilainya sama besar: $4x - 10 = 2x + 30 \\implies 2x = 40 \\implies x = 20$.",
+                hasIllustration: true,
+                illustrationType: "transversal",
+                highlight: "alt-int"
+            },
+            {
+                id: 6,
+                category: "Sudut Dalam Sepihak",
+                question: "Dua sudut dalam sepihak pada dua garis sejajar besarnya $(3y + 20)^\\circ$ dan $(2y + 10)^\\circ$. Nilai $y$ yang memenuhi adalah...",
+                options: ["$40$", "$25$", "$35$", "$30$"],
+                answer: 3, // D
+                explanation: "Sudut dalam sepihak berjumlah $180^\\circ$: $(3y + 20) + (2y + 10) = 180 \\implies 5y + 30 = 180 \\implies 5y = 150 \\implies y = 30$.",
+                hasIllustration: false
+            },
+            {
+                id: 7,
+                category: "Sudut Berpenyiku",
+                question: "Besar sebuah sudut adalah $\\frac{2}{3}$ dari penyikunya. Berapakah besar sudut tersebut?",
+                options: ["$36^\\circ$", "$54^\\circ$", "$45^\\circ$", "$60^\\circ$"],
+                answer: 0, // A
+                explanation: "Misal sudut = $x$, penyiku = $90 - x$. Maka $x = \\frac{2}{3}(90 - x) \\implies 3x = 180 - 2x \\implies 5x = 180 \\implies x = 36^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 8,
+                category: "Sudut Luar Berseberangan",
+                question: "Jika $\\angle A_1$ dan $\\angle B_3$ merupakan pasangan sudut luar berseberangan dengan $\\angle A_1 = (5z - 25)^\\circ$ dan $\\angle B_3 = (3z + 15)^\\circ$, maka besar $\\angle A_1$ adalah...",
+                options: ["$70^\\circ$", "$75^\\circ$", "$60^\\circ$", "$80^\\circ$"],
+                answer: 1, // B
+                explanation: "Sudut luar berseberangan sama besar: $5z - 25 = 3z + 15 \\implies 2z = 40 \\implies z = 20$. Maka $\\angle A_1 = 5(20) - 25 = 75^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "transversal",
+                highlight: "alt-ext"
+            },
+            {
+                id: 9,
+                category: "Sudut Luar Sepihak",
+                question: "Pasangan sudut luar sepihak besarnya $(2x + 40)^\\circ$ dan $(x + 20)^\\circ$. Nilai $x$ adalah...",
+                options: ["$50$", "$30$", "$40$", "$60$"],
+                answer: 2, // C
+                explanation: "Sudut luar sepihak berjumlah $180^\\circ$: $(2x + 40) + (x + 20) = 180 \\implies 3x + 60 = 180 \\implies 3x = 120 \\implies x = 40$.",
+                hasIllustration: false
+            },
+            {
+                id: 10,
+                category: "Sudut Berpelurus",
+                question: "Perhatikan dua sudut berpelurus dengan perbandingan $4 : 5$. Besar sudut yang lebih kecil adalah...",
+                options: ["$100^\\circ$", "$90^\\circ$", "$70^\\circ$", "$80^\\circ$"],
+                answer: 3, // D
+                explanation: "Total bagian perbandingan = $4 + 5 = 9$. Sudut terkecil = $\\frac{4}{9} \\times 180^\\circ = 80^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 11,
+                category: "Sudut Berpenyiku",
+                question: "Dua sudut berpenyiku masing-masing bernilai $(2x + 5)^\\circ$ dan $(3x - 10)^\\circ$. Besar sudut kedua adalah...",
+                options: ["$47^\\circ$", "$43^\\circ$", "$51^\\circ$", "$39^\\circ$"],
+                answer: 0, // A
+                explanation: "$(2x + 5) + (3x - 10) = 90 \\implies 5x - 5 = 90 \\implies 5x = 95 \\implies x = 19$. Sudut kedua = $3(19) - 10 = 47^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "complementary",
+                val1: "(2x+5)°", val2: "(3x-10)°"
+            },
+            {
+                id: 12,
+                category: "Konstruksi Garis Sejajar",
+                question: "Sebuah kereta melintasi dua rel sejajar yang dipotong garis persimpangan. Jika sudut di sisi kanan atas perpotongan pertama adalah $110^\\circ$, berapakah besar sudut di sisi kanan atas perpotongan kedua?",
+                options: ["$70^\\circ$", "$110^\\circ$", "$80^\\circ$", "$90^\\circ$"],
+                answer: 1, // B
+                explanation: "Posisi kedua sudut tersebut adalah **sehadap**, sehingga besarnya persis sama yaitu $110^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 13,
+                category: "Bertolak Belakang",
+                question: "Sudut $\\angle 1$ dan $\\angle 3$ bertolak belakang. Jika $\\angle 1 = (7x - 12)^\\circ$ dan $\\angle 3 = (5x + 8)^\\circ$, maka nilai $x$ adalah...",
+                options: ["$12$", "$15$", "$10$", "$8$"],
+                answer: 2, // C
+                explanation: "$7x - 12 = 5x + 8 \\implies 2x = 20 \\implies x = 10$.",
+                hasIllustration: false
+            },
+            {
+                id: 14,
+                category: "Sudut Dalam Berseberangan",
+                question: "Sudut dalam berseberangan dinyatakan dalam $(3a + 15)^\\circ$ dan $75^\\circ$. Nilai $a$ adalah...",
+                options: ["$25$", "$15$", "$30$", "$20$"],
+                answer: 3, // D
+                explanation: "Sudut dalam berseberangan sama besar: $3a + 15 = 75 \\implies 3a = 60 \\implies a = 20$.",
+                hasIllustration: false
+            },
+            {
+                id: 15,
+                category: "Sudut Berpelurus",
+                question: "Perhatikan sudut lurus $AOB$. Ray $OC$ membagi $AOB$ menjadi $\\angle AOC = (x + 30)^\\circ$ dan $\\angle BOC = (2x - 15)^\\circ$. Besar $\\angle AOC$ adalah...",
+                options: ["$85^\\circ$", "$75^\\circ$", "$105^\\circ$", "$95^\\circ$"],
+                answer: 0, // A
+                explanation: "$(x + 30) + (2x - 15) = 180 \\implies 3x + 15 = 180 \\implies 3x = 165 \\implies x = 55$. Maka $\\angle AOC = 55 + 30 = 85^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "supplementary",
+                val1: "(x+30)°", val2: "(2x-15)°"
+            },
+            {
+                id: 16,
+                category: "Sudut Dalam Sepihak",
+                question: "Dua sudut dalam sepihak besarnya $(4x + 10)^\\circ$ dan $(x + 20)^\\circ$. Besar sudut terbesar adalah...",
+                options: ["$150^\\circ$", "$130^\\circ$", "$120^\\circ$", "$140^\\circ$"],
+                answer: 1, // B
+                explanation: "$(4x + 10) + (x + 20) = 180 \\implies 5x + 30 = 180 \\implies 5x = 150 \\implies x = 30$. Sudut terbesar = $4(30) + 10 = 130^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 17,
+                category: "Sudut Berpenyiku",
+                question: "Selisih dua sudut yang saling berpenyiku adalah $20^\\circ$. Besar sudut terkecil adalah...",
+                options: ["$55^\\circ$", "$45^\\circ$", "$35^\\circ$", "$30^\\circ$"],
+                answer: 2, // C
+                explanation: "$A + B = 90$ dan $A - B = 20$. Eliminasi: $2B = 70 \\implies B = 35^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 18,
+                category: "Sudut Sehadap",
+                question: "Jika $\\angle A_4 = (3x + 25)^\\circ$ dan $\\angle B_4 = (5x - 15)^\\circ$ adalah sehadap, nilai $x$ yang memenuhi adalah...",
+                options: ["$15$", "$25$", "$10$", "$20$"],
+                answer: 3, // D
+                explanation: "Sudut sehadap sama besar: $5x - 15 = 3x + 25 \\implies 2x = 40 \\implies x = 20$.",
+                hasIllustration: true,
+                illustrationType: "transversal",
+                highlight: "corresponding"
+            },
+            {
+                id: 19,
+                category: "Sudut Luar Berseberangan",
+                question: "Dua sudut luar berseberangan bernilai $(6k - 40)^\\circ$ dan $(4k + 10)^\\circ$. Besar salah satu sudut tersebut adalah...",
+                options: ["$110^\\circ$", "$100^\\circ$", "$90^\\circ$", "$120^\\circ$"],
+                answer: 0, // A
+                explanation: "$6k - 40 = 4k + 10 \\implies 2k = 50 \\implies k = 25$. Besar sudut = $4(25) + 10 = 110^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 20,
+                category: "Sudut Berpelurus",
+                question: "Besar pelurus dari sudut $65^\\circ$ adalah...",
+                options: ["$25^\\circ$", "$115^\\circ$", "$125^\\circ$", "$35^\\circ$"],
+                answer: 1, // B
+                explanation: "Pelurus sudut $x = 180^\\circ - x$. Maka pelurus dari $65^\\circ$ adalah $180^\\circ - 65^\\circ = 115^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 21,
+                category: "Kompleks Antar Sudut",
+                question: "Pada dua garis sejajar dipotong transversal, sudut $\\angle A_1 = 125^\\circ$. Jika $\\angle B_4$ adalah sudut luar sepihak dengan $\\angle A_1$, maka besar $\\angle B_4$ adalah...",
+                options: ["$125^\\circ$", "$65^\\circ$", "$55^\\circ$", "$145^\\circ$"],
+                answer: 2, // C
+                explanation: "Sudut luar sepihak berjumlah $180^\\circ$. Maka $\\angle B_4 = 180^\\circ - 125^\\circ = 55^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "transversal",
+                highlight: "consecutive-ext"
+            },
+            {
+                id: 22,
+                category: "Sudut Berpenyiku",
+                question: "Besar penyiku dari sudut $42^\\circ$ adalah...",
+                options: ["$138^\\circ$", "$58^\\circ$", "$42^\\circ$", "$48^\\circ$"],
+                answer: 3, // D
+                explanation: "Penyiku sudut $x = 90^\\circ - x$. Penyiku $42^\\circ = 90^\\circ - 42^\\circ = 48^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 23,
+                category: "Sudut Dalam Sepihak",
+                question: "Sudut $\\angle M$ dan $\\angle N$ adalah pasangan dalam sepihak. Jika $\\angle M = (4y + 30)^\\circ$ dan $\\angle N = (y + 20)^\\circ$, berapakah nilai $y$?",
+                options: ["$26$", "$30$", "$28$", "$24$"],
+                answer: 0, // A
+                explanation: "$(4y + 30) + (y + 20) = 180 \\implies 5y + 50 = 180 \\implies 5y = 130 \\implies y = 26$.",
+                hasIllustration: false
+            },
+            {
+                id: 24,
+                category: "Bertolak Belakang",
+                question: "Dua garis berpotongan. Jika sudut bertolak belakang dinyatakan sebagai $(3x + 15)^\\circ$ dan $(x + 45)^\\circ$, besar sudut tersebut adalah...",
+                options: ["$45^\\circ$", "$60^\\circ$", "$50^\\circ$", "$55^\\circ$"],
+                answer: 1, // B
+                explanation: "$3x + 15 = x + 45 \\implies 2x = 30 \\implies x = 15$. Besar sudut = $15 + 45 = 60^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 25,
+                category: "Sudut Berpelurus",
+                question: "Suatu sudut besarnya 4 kali pelurusnya. Berapakah besar sudut tersebut?",
+                options: ["$36^\\circ$", "$135^\\circ$", "$144^\\circ$", "$120^\\circ$"],
+                answer: 2, // C
+                explanation: "Misal pelurus = $p$, sudut = $4p$. Maka $4p + p = 180 \\implies 5p = 180 \\implies p = 36^\\circ$. Sudut tersebut = $4(36) = 144^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 26,
+                category: "Sudut Dalam Berseberangan",
+                question: "Jika dua sudut dalam berseberangan besarnya $(2x + 40)^\\circ$ dan $(4x - 10)^\\circ$, nilai $x$ adalah...",
+                options: ["$30$", "$20$", "$15$", "$25$"],
+                answer: 3, // D
+                explanation: "$4x - 10 = 2x + 40 \\implies 2x = 50 \\implies x = 25$.",
+                hasIllustration: false
+            },
+            {
+                id: 27,
+                category: "Sudut Sehadap",
+                question: "Perhatikan pasangan sudut sehadap $(5x - 20)^\\circ$ dan $(3x + 30)^\\circ$. Nilai $x$ yang memenuhi adalah...",
+                options: ["$25$", "$20$", "$15$", "$30$"],
+                answer: 0, // A
+                explanation: "Sudut sehadap sama besar: $5x - 20 = 3x + 30 \\implies 2x = 50 \\implies x = 25$.",
+                hasIllustration: false
+            },
+            {
+                id: 28,
+                category: "Sudut Luar Sepihak",
+                question: "Jika $\\angle 1$ dan $\\angle 8$ adalah pasangan sudut luar sepihak dengan $\\angle 1 = 105^\\circ$, maka besar $\\angle 8$ adalah...",
+                options: ["$105^\\circ$", "$75^\\circ$", "$85^\\circ$", "$95^\\circ$"],
+                answer: 1, // B
+                explanation: "Sudut luar sepihak berjumlah $180^\\circ$. Maka $\\angle 8 = 180^\\circ - 105^\\circ = 75^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 29,
+                category: "Sudut Berpenyiku",
+                question: "Perbandingan dua sudut saling berpenyiku adalah $7 : 8$. Besar sudut terbesar adalah...",
+                options: ["$42^\\circ$", "$52^\\circ$", "$48^\\circ$", "$40^\\circ$"],
+                answer: 2, // C
+                explanation: "Total perbandingan = $7 + 8 = 15$. Sudut terbesar = $\\frac{8}{15} \\times 90^\\circ = 48^\\circ$.",
+                hasIllustration: false
+            },
+            {
+                id: 30,
+                category: "Kompleks Garis Sejajar",
+                question: "Sudut $\\angle A_3$ dan $\\angle B_1$ adalah pasangan sudut dalam berseberangan. Jika $\\angle A_3 = 68^\\circ$, berapakah besar pelurus dari $\\angle B_1$?",
+                options: ["$68^\\circ$", "$122^\\circ$", "$102^\\circ$", "$112^\\circ$"],
+                answer: 3, // D
+                explanation: "Karena dalam berseberangan, $\\angle B_1 = \\angle A_3 = 68^\\circ$. Pelurus dari $\\angle B_1 = 180^\\circ - 68^\\circ = 112^\\circ$.",
+                hasIllustration: true,
+                illustrationType: "transversal",
+                highlight: "alt-int"
+            }
+        ];
+
+        /* -------------------------------------------------------------------------- */
+        /* 2. STATE MANAGEMENT & LOCAL STORAGE                                       */
+        /* -------------------------------------------------------------------------- */
+        const STORAGE_KEY = "HUBUNGAN_SUDUT_QUIZ_V1";
+        
+        let userState = {
+            currentIndex: 0,
+            answers: {},      // { qId: selectedOptionIndex }
+            flagged: {},      // { qId: true/false }
+            score: 0,
+            gridFilter: 'all' // 'all', 'correct', 'wrong', 'flagged'
+        };
+
+        // Load Saved State on Launch
+        function initQuiz() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    userState = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Gagal membaca data tersimpan", e);
+                }
+            }
+            calculateScore();
+            renderQuestion();
+            renderGrid();
+            updateSummary();
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(userState));
+            const indicator = document.getElementById('save-indicator');
+            indicator.classList.remove('hidden');
+            setTimeout(() => {
+                indicator.classList.add('hidden');
+            }, 1500);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 3. CALCULATE SCORE & ACCURACY                                             */
+        /* -------------------------------------------------------------------------- */
+        function calculateScore() {
+            let correctCount = 0;
+            questionsData.forEach(q => {
+                if (userState.answers[q.id] === q.answer) {
+                    correctCount++;
+                }
+            });
+            // Total score out of 100
+            userState.score = Math.round((correctCount / questionsData.length) * 100);
+            document.getElementById('live-score').innerText = userState.score;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 4. RENDER QUESTION CONTENT                                                */
+        /* -------------------------------------------------------------------------- */
+        function renderQuestion() {
+            const q = questionsData[userState.currentIndex];
+            
+            // Header stats
+            document.getElementById('current-q-num').innerText = `${userState.currentIndex + 1} / ${questionsData.length}`;
+            document.getElementById('question-category').innerText = q.category;
+
+            // Flag Button Status
+            const flagBtn = document.getElementById('flag-btn');
+            if (userState.flagged[q.id]) {
+                flagBtn.className = "text-xs font-semibold px-3 py-1 rounded-full border transition flex items-center gap-1 border-amber-300 bg-amber-100 text-amber-800";
+            } else {
+                flagBtn.className = "text-xs font-semibold px-3 py-1 rounded-full border transition flex items-center gap-1 border-slate-200 bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700";
+            }
+
+            // Question text
+            document.getElementById('question-text').innerHTML = `${userState.currentIndex + 1}. ${q.question}`;
+
+            // Render SVG Illustration if applicable
+            const illContainer = document.getElementById('illustration-container');
+            if (q.hasIllustration) {
+                illContainer.classList.remove('hidden');
+                illContainer.innerHTML = generateSVGIllustration(q);
+            } else {
+                illContainer.classList.add('hidden');
+                illContainer.innerHTML = '';
+            }
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const selectedAns = userState.answers[q.id];
+            const hasAnswered = selectedAns !== undefined;
+
+            const prefixes = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 sm:p-4 rounded-xl border font-medium text-xs sm:text-sm transition flex items-center justify-between group cursor-pointer ";
+                
+                if (!hasAnswered) {
+                    btn.className += "border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 bg-white text-slate-700";
+                    btn.onclick = () => selectAnswer(q.id, idx);
+                } else {
+                    // Lock options after answering
+                    btn.disabled = true;
+                    if (idx === q.answer) {
+                        btn.className += "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold shadow-sm";
+                    } else if (idx === selectedAns && selectedAns !== q.answer) {
+                        btn.className += "border-rose-400 bg-rose-50 text-rose-900 font-bold";
+                    } else {
+                        btn.className += "border-slate-100 bg-slate-50/50 text-slate-400 opacity-60";
+                    }
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center font-bold text-xs ${idx === selectedAns ? 'bg-indigo-600 text-white border-indigo-600' : 'text-slate-600'}">${prefixes[idx]}</span>
+                        <span>${optText}</span>
+                    </div>
+                    ${hasAnswered && idx === q.answer ? '<span class="text-emerald-600 text-base font-bold">✓</span>' : ''}
+                    ${hasAnswered && idx === selectedAns && selectedAns !== q.answer ? '<span class="text-rose-500 text-base font-bold">✗</span>' : ''}
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Feedback Box Handling
+            const feedbackBox = document.getElementById('feedback-box');
+            if (hasAnswered) {
+                feedbackBox.classList.remove('hidden');
+                const isCorrect = selectedAns === q.answer;
+                if (isCorrect) {
+                    feedbackBox.className = "mt-5 p-4 rounded-xl border border-emerald-200 bg-emerald-50/80 text-emerald-900 text-xs sm:text-sm space-y-1.5";
+                    document.getElementById('feedback-title').innerHTML = `<span class="text-lg">🎉</span> Jawaban Kamu Benar!`;
+                } else {
+                    feedbackBox.className = "mt-5 p-4 rounded-xl border border-rose-200 bg-rose-50/80 text-rose-900 text-xs sm:text-sm space-y-1.5";
+                    document.getElementById('feedback-title').innerHTML = `<span class="text-lg">❌</span> Jawaban Belum Tepat! (Kunci: ${prefixes[q.answer]})`;
+                }
+                document.getElementById('feedback-text').innerHTML = `<b>Pembahasan:</b> ${q.explanation}`;
+            } else {
+                feedbackBox.classList.add('hidden');
+            }
+
+            // Prev / Next button state
+            document.getElementById('prev-btn').disabled = userState.currentIndex === 0;
+            const nextBtn = document.getElementById('next-btn');
+            if (userState.currentIndex === questionsData.length - 1) {
+                nextBtn.innerText = "Selesai 🏁";
+                nextBtn.onclick = openResultModal;
+            } else {
+                nextBtn.innerText = "Selanjutnya ➡️";
+                nextBtn.onclick = () => navigateQuestion(1);
+            }
+
+            // Progress Bar & Math Render
+            updateProgress();
+            renderMath();
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 5. GENERATE SVG GEOMETRY ILLUSTRATIONS                                    */
+        /* -------------------------------------------------------------------------- */
+        function generateSVGIllustration(q) {
+            if (q.illustrationType === "complementary") {
+                return `
+                <svg width="220" height="150" viewBox="0 0 220 150" class="max-w-full">
+                    <!-- Right Angle Symbol -->
+                    <rect x="40" y="90" width="20" height="20" fill="none" stroke="#6366f1" stroke-width="2"/>
+                    <!-- Base Lines -->
+                    <line x1="40" y1="110" x2="180" y2="110" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="40" y1="110" x2="40" y2="20" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+                    <!-- Ray -->
+                    <line x1="40" y1="110" x2="140" y2="35" stroke="#818cf8" stroke-width="3.5" stroke-linecap="round"/>
+                    <!-- Labels -->
+                    <text x="95" y="95" fill="#38bdf8" font-size="12" font-weight="bold">${q.val1 || ''}</text>
+                    <text x="65" y="55" fill="#a7f3d0" font-size="12" font-weight="bold">${q.val2 || ''}</text>
+                </svg>`;
+            } else if (q.illustrationType === "supplementary") {
+                return `
+                <svg width="240" height="130" viewBox="0 0 240 130" class="max-w-full">
+                    <!-- Straight Line -->
+                    <line x1="20" y1="95" x2="220" y2="95" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+                    <!-- Ray Divider -->
+                    <line x1="120" y1="95" x2="60" y2="25" stroke="#818cf8" stroke-width="3.5" stroke-linecap="round"/>
+                    <circle cx="120" cy="95" r="4" fill="#818cf8"/>
+                    <!-- Labels -->
+                    <text x="60" y="80" fill="#38bdf8" font-size="12" font-weight="bold">${q.val1 || ''}</text>
+                    <text x="135" y="75" fill="#a7f3d0" font-size="12" font-weight="bold">${q.val2 || ''}</text>
+                </svg>`;
+            } else if (q.illustrationType === "transversal") {
+                return `
+                <svg width="260" height="150" viewBox="0 0 260 150" class="max-w-full">
+                    <!-- Parallel Lines -->
+                    <line x1="20" y1="45" x2="240" y2="45" stroke="#94a3b8" stroke-width="3"/>
+                    <line x1="20" y1="105" x2="240" y2="105" stroke="#94a3b8" stroke-width="3"/>
+                    <!-- Transversal Line -->
+                    <line x1="60" y1="15" x2="200" y2="135" stroke="#6366f1" stroke-width="3.5"/>
+                    <text x="245" y="50" fill="#cbd5e1" font-size="11" font-weight="bold">k</text>
+                    <text x="245" y="110" fill="#cbd5e1" font-size="11" font-weight="bold">l</text>
+                    <text x="205" y="145" fill="#a5b4fc" font-size="11" font-weight="bold">m</text>
+                </svg>`;
+            }
+            return '';
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 6. USER INTERACTION HANDLERS                                              */
+        /* -------------------------------------------------------------------------- */
+        function selectAnswer(qId, optIdx) {
+            userState.answers[qId] = optIdx;
+            calculateScore();
+            saveState();
+            renderQuestion();
+            renderGrid();
+            updateSummary();
+        }
+
+        function toggleFlagCurrentQuestion() {
+            const qId = questionsData[userState.currentIndex].id;
+            userState.flagged[qId] = !userState.flagged[qId];
+            saveState();
+            renderQuestion();
+            renderGrid();
+        }
+
+        function navigateQuestion(direction) {
+            const newIdx = userState.currentIndex + direction;
+            if (newIdx >= 0 && newIdx < questionsData.length) {
+                userState.currentIndex = newIdx;
+                renderQuestion();
+                renderGrid();
+            }
+        }
+
+        function jumpToQuestion(idx) {
+            userState.currentIndex = idx;
+            renderQuestion();
+            renderGrid();
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 7. GRID NAVIGATOR & FILTERS                                                */
+        /* -------------------------------------------------------------------------- */
+        function setGridFilter(filterType) {
+            userState.gridFilter = filterType;
+            ['all', 'correct', 'wrong', 'flagged'].forEach(f => {
+                const btn = document.getElementById(`filter-${f}`);
+                if (f === filterType) {
+                    btn.className = "py-1 rounded-lg bg-white shadow-sm text-indigo-700 font-bold";
+                } else {
+                    btn.className = "py-1 rounded-lg text-slate-600 hover:text-slate-900 font-semibold";
+                }
+            });
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+
+            questionsData.forEach((q, idx) => {
+                const ans = userState.answers[q.id];
+                const isFlagged = userState.flagged[q.id];
+                const isCorrect = ans === q.answer;
+                const isWrong = ans !== undefined && !isCorrect;
+
+                // Apply Filter
+                if (userState.gridFilter === 'correct' && !isCorrect) return;
+                if (userState.gridFilter === 'wrong' && !isWrong) return;
+                if (userState.gridFilter === 'flagged' && !isFlagged) return;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => jumpToQuestion(idx);
+
+                let bgClass = "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200";
+                
+                if (isFlagged) {
+                    bgClass = "bg-amber-400 text-slate-900 border-amber-500 font-bold";
+                } else if (ans !== undefined) {
+                    if (isCorrect) {
+                        bgClass = "bg-emerald-500 text-white border-emerald-600 font-bold";
+                    } else {
+                        bgClass = "bg-rose-500 text-white border-rose-600 font-bold";
+                    }
+                }
+
+                const isActive = idx === userState.currentIndex;
+                const activeRing = isActive ? "ring-2 ring-indigo-600 ring-offset-2" : "";
+
+                btn.className = `w-full h-10 rounded-xl border text-xs flex items-center justify-center transition ${bgClass} ${activeRing}`;
+                btn.innerText = idx + 1;
+                gridContainer.appendChild(btn);
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 8. SUMMARY AND MODAL LOGIC                                                */
+        /* -------------------------------------------------------------------------- */
+        function updateProgress() {
+            const answeredCount = Object.keys(userState.answers).length;
+            const percent = Math.round((answeredCount / questionsData.length) * 100);
+            document.getElementById('progress-percent').innerText = `${percent}%`;
+            document.getElementById('progress-bar-inner').style.width = `${percent}%`;
+        }
+
+        function updateSummary() {
+            const answeredCount = Object.keys(userState.answers).length;
+            document.getElementById('summary-answered').innerText = `${answeredCount} / ${questionsData.length}`;
+
+            let correctCount = 0;
+            questionsData.forEach(q => {
+                if (userState.answers[q.id] === q.answer) correctCount++;
+            });
+            const acc = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+            document.getElementById('summary-accuracy').innerText = `${acc}%`;
+        }
+
+        function openResultModal() {
+            calculateScore();
+            const modal = document.getElementById('result-modal');
+            document.getElementById('final-score-val').innerText = userState.score;
+
+            let correct = 0;
+            let wrong = 0;
+            let empty = 0;
+
+            questionsData.forEach(q => {
+                const ans = userState.answers[q.id];
+                if (ans === undefined) empty++;
+                else if (ans === q.answer) correct++;
+                else wrong++;
+            });
+
+            document.getElementById('modal-correct').innerText = correct;
+            document.getElementById('modal-wrong').innerText = wrong;
+            document.getElementById('modal-empty').innerText = empty;
+
+            const evalText = document.getElementById('modal-eval-text');
+            if (userState.score >= 85) {
+                evalText.innerText = "🌟 Luar biasa! Pemahaman konsep hubungan antar sudut kamu sangat matang!";
+            } else if (userState.score >= 70) {
+                evalText.innerText = "👍 Bagus sekali! Kamu sudah menguasai sebagian besar materi matematika ini.";
+            } else {
+                evalText.innerText = "💪 Tetap semangat! Tinjau kembali pembahasan soal yang salah untuk makin paham.";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        function confirmResetQuiz() {
+            if (confirm("Apakah kamu yakin ingin mengulang kuis dari awal? Semua jawaban tersimpan akan dihapus.")) {
+                resetQuizData();
+            }
+        }
+
+        function resetQuizData() {
+            localStorage.removeItem(STORAGE_KEY);
+            userState = {
+                currentIndex: 0,
+                answers: {},
+                flagged: {},
+                score: 0,
+                gridFilter: 'all'
+            };
+            closeResultModal();
+            calculateScore();
+            renderQuestion();
+            renderGrid();
+            updateSummary();
+        }
+
+        function renderMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 9. INIT ON WINDOW LOAD                                                    */
+        /* -------------------------------------------------------------------------- */
+        window.onload = function() {
+            initQuiz();
+        };
+    </script>
+</body>
+</html>
